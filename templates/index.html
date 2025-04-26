@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apple Image Prediction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 30px;
+            background-color: #f0f0f0;
+            background-image: url('static/apple.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #C70039;
+            padding: 20px;
+            color: white;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin: 0;
+        }
+
+        .header img {
+            width: 100px;
+            height: auto;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.036);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            color: white;
+        }
+
+        input[type="file"] {
+            display: block;
+            margin: 20px auto;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #3f00c7;
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: block;
+            margin: 20px auto;
+        }
+
+        button:hover {
+            background-color: #a04545;
+        }
+
+        #result {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .result-box {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: white;
+            color: black;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .fresh {
+            color: green;
+        }
+
+        .low {
+            color: orange;
+        }
+
+        .high {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>A Hyperspectral Approach to Assessing Fungicide and Insecticide Effects on Apples</h1>
+        <img src="static/logo.png" alt="Project Logo">
+    </div>
+
+    <div class="container">
+        <h1>Upload Apple Image for Prediction</h1>
+        <input type="file" id="imageUpload" accept="image/*">
+        <button onclick="uploadImage()">Predict</button>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function uploadImage() {
+            let fileInput = document.getElementById("imageUpload");
+            let file = fileInput.files[0];
+
+            if (!file) {
+                alert("Please upload an image.");
+                return;
+            }
+
+            let formData = new FormData();
+            formData.append("image", file);
+
+            fetch("/predict", {
+                method: "POST",
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    let resultDiv = document.getElementById("result");
+                    let category = data.category.toLowerCase();
+                    let outcomeClass = '';
+                    let tickSymbol = '';
+
+                    if (category === "fresh") {
+                        outcomeClass = 'fresh';
+                        tickSymbol = '✅';
+                    } else if (category === "low") {
+                        outcomeClass = 'low';
+                        tickSymbol = '🟡';
+                    } else if (category === "high") {
+                        outcomeClass = 'high';
+                        tickSymbol = '❌';
+                    }
+
+                    if (data.error) {
+                        resultDiv.innerHTML = `<div class="result-box"><p>Error: ${data.error}</p></div>`;
+                    } else {
+                        resultDiv.innerHTML = `<div class="result-box"><p class="${outcomeClass}">${tickSymbol} Prediction: ${category.toUpperCase()}</p></div>`;
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                });
+        }
+    </script>
+</body>
+
+</html>
